@@ -1,0 +1,156 @@
+<!doctype html>
+
+<meta charset="utf-8">
+<title>Rules Graphical Representation</title>
+
+<link rel="stylesheet" href="demo.css">
+<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+<script src="dagre-d3.js"></script>
+
+<h3>Graphical Representation</h3>
+
+<style id="css">
+text {
+  font-weight: 300;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serf;
+  font-size: 14px;
+}
+
+.node rect{
+  stroke: #333;
+  fill: #79C546;
+}
+
+.node circle{
+  stroke: #333;
+  fill: #E6BA30;
+}
+
+.node ellipse{
+  stroke: #333;
+  fill: #74FDFF;
+}
+
+.edgePath path {
+  stroke: #333;
+  fill: #333;
+  stroke-width: 1.5px;
+}
+
+.node text {
+  pointer-events: none;
+}
+
+.nodeContent{
+  border: 1px solid #ccc;
+  width: 1260px;
+  height: 300px;
+  margin: 20px auto;
+}
+</style>
+
+<svg width=1260 height=600></svg>
+<div class = "nodeContent">
+  <h4> Click on a Node to see its details </h4>
+  <div id = "nodeDetailsBox"></div>
+</div>
+
+<script id="js">
+// Create a new directed graph
+var g = new dagreD3.graphlib.Graph().setGraph({rankdir: "LR", nodesep:150, ranksep: 150});
+
+// States and transitions
+var states = {
+  "START": {
+    description: "represents the start of application."
+  },
+
+  "SQL-A": {
+    description: "Select * from table;"
+  },
+
+  "SQL-G": {
+    description: "Node g"
+  },
+
+   "SQL-B": {
+    description: "Node b"
+  },
+
+  "PROC-C": {
+    description: "Proc c"
+  },
+
+    "PROC-D": {
+    description: "Proc d"
+  },
+
+    "PROC-F": {
+    description: "Proc f"
+  },
+
+   "SQL-E": {
+    description: "Node e"
+  },
+
+  "STOP": {
+    description: "represents the stop of application."
+  }
+};
+
+// Add states to the graph, set labels, and style
+Object.keys(states).forEach(function(state) {
+    var value = states[state];
+    value.label = state.split("-")[0];
+    if(state.toLowerCase().indexOf("sql") > -1){
+          value.shape = "circle";
+    }
+    else if(state.toLowerCase().indexOf("proc") > -1){
+          value.rx = value.ry = 2;
+    }
+    else{
+          value.shape = "ellipse";
+    }
+    g.setNode(state, value);
+});
+
+// Set up the edges
+g.setEdge("START",     "SQL-A",     { label: ""});
+g.setEdge("START",     "SQL-G",     { label: "" });
+g.setEdge("SQL-A",     "SQL-B",     { label: "" });
+g.setEdge("SQL-A",     "PROC-C",     { label: "" });
+g.setEdge("SQL-G",     "SQL-B",     { label: "" });
+g.setEdge("SQL-G",     "PROC-C",     { label: "" });
+g.setEdge("SQL-B",     "PROC-D",     { label: "" });
+g.setEdge("SQL-B",     "PROC-F",     { label: "" });
+g.setEdge("PROC-C",     "PROC-D",     { label: "" });
+g.setEdge("PROC-C",     "PROC-F",     { label: "" });
+g.setEdge("PROC-D",     "SQL-E",     { label: "" });
+g.setEdge("PROC-F",     "SQL-E",     { label: "" });
+g.setEdge("SQL-E",     "STOP",     { label: "" });
+
+
+// Create the renderer
+var render = new dagreD3.render();
+
+// Set up an SVG group so that we can translate the final graph.
+var svg = d3.select("svg"),
+    inner = svg.append("g");
+
+// Simple function to style the tooltip for the given node.
+var styleTooltip = function(name, description) {
+  document.getElementById("nodeDetailsBox").innerHTML = name + " : " +  description;
+};
+
+// Run the renderer. This is what draws the final graph.
+render(inner, g);
+
+inner.selectAll("g.node")
+     .on("click", function(v) { return styleTooltip(v, g.node(v).description)})
+
+// Center the graph
+var xCenterOffset = (svg.attr("width") - g.graph().width) / 2;
+inner.attr("transform", "translate(" + xCenterOffset + ", 20)");
+svg.attr("height", g.graph().height + 40);
+
+</script>
